@@ -1,10 +1,10 @@
 use criterion::{criterion_group, criterion_main, Bencher, BenchmarkId, Criterion};
-use cumfreq::*;
+use cumulfreqtable::*;
 use rand::{distributions::Uniform, prelude::*};
 
 //pub fn criterion_benchmark(c: &mut Criterion) {
 //let mut x = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-//c.bench_function("cumfreq", |b| b.iter(|| cumfreq(black_box(&mut x))));
+//c.bench_function("cumulfreq", |b| b.iter(|| cumulfreq(black_box(&mut x))));
 //}
 
 pub fn add(c: &mut Criterion) {
@@ -24,19 +24,19 @@ pub fn add(c: &mut Criterion) {
             len,
         );
         group.bench_with_input(
-            BenchmarkId::new("freq_table", len),
+            BenchmarkId::new("freq_array", len),
             &input,
-            bench_add::<freq_table::FreqTable>,
+            bench_add::<freq_array::FreqTable>,
         );
         group.bench_with_input(
-            BenchmarkId::new("cumfreq_table", len),
+            BenchmarkId::new("cumulfreq_array", len),
             &input,
-            bench_add::<cumfreq_table::CumFreqTable>,
+            bench_add::<cumulfreq_array::CumulFreqTable>,
         );
         group.bench_with_input(
             BenchmarkId::new("binary_indexed_tree", len),
             &input,
-            bench_add::<binary_indexed_tree::CumFreqTable>,
+            bench_add::<binary_indexed_tree::CumulFreqTable>,
         );
     }
 }

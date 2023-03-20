@@ -3,11 +3,11 @@
 /// represented as the appropriate sum of sets of cumulative sub-frequencies.
 /// From Peter m. Fenwick, "A new data structure for cumulative frequency tables." (1994)
 #[derive(Debug, Clone)]
-pub struct CumFreqTable {
+pub struct CumulFreqTable {
     tree: Box<[usize]>,
 }
 
-impl super::CumFreqTable for CumFreqTable {
+impl super::CumFreqTable for CumulFreqTable {
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {

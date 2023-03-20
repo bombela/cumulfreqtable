@@ -1,11 +1,11 @@
 /// Store the cumulative frequencies of each position in a array.
 /// Add to the cumulative frequency of a position by adding to all precedent position.
 #[derive(Debug, Clone)]
-pub struct CumFreqTable {
+pub struct CumulFreqTable {
     sums: Box<[usize]>,
 }
 
-impl super::CumFreqTable for CumFreqTable {
+impl super::CumFreqTable for CumulFreqTable {
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {

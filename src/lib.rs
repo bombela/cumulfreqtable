@@ -33,8 +33,8 @@ pub trait CumFreqTable {
     fn scale_div(&mut self, div_factor: usize);
 }
 
-pub mod freq_table;
-pub mod cumfreq_table;
+pub mod freq_array;
+pub mod cumulfreq_array;
 pub mod binary_indexed_tree;
 
 #[cfg(test)]
@@ -44,9 +44,9 @@ mod tests {
 
     #[test]
     fn it_works() {
-        test_linear::<freq_table::FreqTable>();
-        test_linear::<cumfreq_table::CumFreqTable>();
-        test_linear::<binary_indexed_tree::CumFreqTable>();
+        test_linear::<freq_array::FreqTable>();
+        test_linear::<cumulfreq_array::CumulFreqTable>();
+        test_linear::<binary_indexed_tree::CumulFreqTable>();
     }
 
     fn test_linear<T: CumFreqTable + Debug>() {
