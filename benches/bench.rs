@@ -16,21 +16,13 @@ macro_rules! bench_tables {
                 $f,
             );
             group.bench_with_input(
-                BenchmarkId::new("freq_array", len),
-                &(
-                    cumulfreq_array::CumulFreqTable::new(len),
-                    rand_pos.clone(),
-                    dist_pos,
-                ),
+                BenchmarkId::new("cumulfreq_array", len),
+                &(cumulfreq_array::CumulFreqTable::new(len), rand_pos.clone(), dist_pos),
                 $f,
             );
             group.bench_with_input(
-                BenchmarkId::new("freq_array", len),
-                &(
-                    binary_indexed_tree::CumulFreqTable::new(len),
-                    rand_pos.clone(),
-                    dist_pos,
-                ),
+                BenchmarkId::new("binary_indexed_tree", len),
+                &(binary_indexed_tree::CumulFreqTable::new(len), rand_pos.clone(), dist_pos),
                 $f,
             );
         }
@@ -58,10 +50,22 @@ fn getcumul(c: &mut Criterion) {
     });
 }
 
+fn inc_getcumul_gettotal(c: &mut Criterion) {
+    bench_tables!(c, "inc_getcumul&total", |b, input| {
+        let (mut table, mut rand_pos, dist_pos) = input.clone();
+        b.iter(|| {
+            table.inc(rand_pos.sample(dist_pos));
+            (table.cumfreq(rand_pos.sample(dist_pos)), table.total())
+        })
+    });
+}
+
 fn config() -> Criterion {
     use std::time::Duration;
     Criterion::default().warm_up_time(Duration::from_secs(1))
 }
 
-criterion_group!(name = benches; config = config(); targets = inc, getcumul);
+criterion_group!(name = benches; config = config();
+    targets = inc, getcumul, inc_getcumul_gettotal
+);
 criterion_main!(benches);
