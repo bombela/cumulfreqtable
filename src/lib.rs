@@ -33,9 +33,9 @@ pub trait CumFreqTable {
     fn scale_div(&mut self, div_factor: usize);
 }
 
-mod freq_table;
-mod cumfreq_table;
-mod binary_indexed_tree;
+pub mod freq_table;
+pub mod cumfreq_table;
+pub mod binary_indexed_tree;
 
 #[cfg(test)]
 mod tests {
