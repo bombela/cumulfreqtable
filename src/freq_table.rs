@@ -1,12 +1,13 @@
-/// Linear because computing the cumulative frequency of a position requires to iterate the backing
-/// array up to the position.
+/// Store the frequency of each position in a array.
+/// Compute the cumulative frequency by summing over the array.
+/// The total is maintained as a separate value.
 #[derive(Debug, Clone)]
-pub struct CumFreqTableLinear {
+pub struct FreqTable {
     freqs: Box<[usize]>,
     total: usize,
 }
 
-impl super::CumFreqTable for CumFreqTableLinear {
+impl super::CumFreqTable for FreqTable {
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {

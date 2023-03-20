@@ -1,13 +1,13 @@
-/// Uses a binary indexed tree to store cumulative frequencies.
+/// Store the cumulative frequencies with a binary indexed tree in a array.
 /// Just as an integer is the sum of appropriate powers of two, so can a cumulative frequency be
 /// represented as the appropriate sum of sets of cumulative sub-frequencies.
 /// From Peter m. Fenwick, "A new data structure for cumulative frequency tables." (1994)
 #[derive(Debug, Clone)]
-pub struct CumFreqTableBinaryIndexedTree {
+pub struct CumFreqTable {
     tree: Box<[usize]>,
 }
 
-impl super::CumFreqTable for CumFreqTableBinaryIndexedTree {
+impl super::CumFreqTable for CumFreqTable {
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {
