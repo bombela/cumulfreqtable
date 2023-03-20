@@ -7,7 +7,7 @@ pub struct FreqTable {
     total: usize,
 }
 
-impl super::CumFreqTable for FreqTable {
+impl super::CumulFreqTable for FreqTable {
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {

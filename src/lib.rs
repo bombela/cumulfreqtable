@@ -1,7 +1,7 @@
 /// A cumulative frequency table computes the cumulative frequency for each position in the table.
 /// Different implementations will offer different performance characteristics.
 /// TODO: Generic over the type of the frequency.
-pub trait CumFreqTable {
+pub trait CumulFreqTable {
     /// Create a new table with the given length.
     /// Panic:
     fn new(len: usize) -> Self;
@@ -49,7 +49,7 @@ mod tests {
         test_linear::<binary_indexed_tree::CumulFreqTable>();
     }
 
-    fn test_linear<T: CumFreqTable + Debug>() {
+    fn test_linear<T: CumulFreqTable + Debug>() {
         let len = 10;
         let mut table = T::new(len);
         dbg!(len, &table);

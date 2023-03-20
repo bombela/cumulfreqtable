@@ -5,7 +5,7 @@ pub struct CumulFreqTable {
     sums: Box<[usize]>,
 }
 
-impl super::CumFreqTable for CumulFreqTable {
+impl super::CumulFreqTable for CumulFreqTable {
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {
