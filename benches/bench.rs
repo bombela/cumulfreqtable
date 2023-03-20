@@ -1,12 +1,15 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{ criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion, PlotConfiguration, };
 use cumulfreqtable::*;
 use rand::{distributions::Uniform, prelude::*};
 
 macro_rules! bench_tables {
     ($c:ident, $name:expr, $f:expr) => {
         let mut group = $c.benchmark_group($name);
+        group.plot_config(PlotConfiguration::default()
+            .summary_scale(AxisScale::Logarithmic)
+        );
         let rand_pos = StdRng::from_entropy();
-        for i in (2..=16).step_by(2) {
+        for i in 2..=16 {
             let len = 1 << i;
             group.throughput(criterion::Throughput::Elements(len as u64));
             let dist_pos = Uniform::from(0..len);
@@ -38,20 +41,28 @@ fn inc(c: &mut Criterion) {
     });
 }
 
-fn getcumul(c: &mut Criterion) {
-    bench_tables!(c, "getcumul", |b, input| {
+fn inc_cumul(c: &mut Criterion) {
+    bench_tables!(c, "inc+cumul", |b, input| {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
-        for _ in 0..table.len() {
-            table.inc(rand_pos.sample(dist_pos));
-        }
         b.iter(|| {
+            table.inc(rand_pos.sample(dist_pos));
             table.cumfreq(rand_pos.sample(dist_pos));
         })
     });
 }
 
-fn inc_getcumul_gettotal(c: &mut Criterion) {
-    bench_tables!(c, "inc_getcumul&total", |b, input| {
+fn inc_total(c: &mut Criterion) {
+    bench_tables!(c, "inc+total", |b, input| {
+        let (mut table, mut rand_pos, dist_pos) = input.clone();
+        b.iter(|| {
+            table.inc(rand_pos.sample(dist_pos));
+            table.total()
+        })
+    });
+}
+
+fn inc_cumul_total(c: &mut Criterion) {
+    bench_tables!(c, "inc+cumul+total", |b, input| {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));
@@ -60,12 +71,24 @@ fn inc_getcumul_gettotal(c: &mut Criterion) {
     });
 }
 
+fn inc_freq(c: &mut Criterion) {
+    bench_tables!(c, "inc+freq", |b, input| {
+        let (mut table, mut rand_pos, dist_pos) = input.clone();
+        b.iter(|| {
+            table.inc(rand_pos.sample(dist_pos));
+            table.freq(rand_pos.sample(dist_pos));
+        })
+    });
+}
+
 fn config() -> Criterion {
     use std::time::Duration;
-    Criterion::default().warm_up_time(Duration::from_secs(1))
+    Criterion::default()
+        .warm_up_time(Duration::from_millis(500))
+        .measurement_time(Duration::from_millis(1500))
 }
 
 criterion_group!(name = benches; config = config();
-    targets = inc, getcumul, inc_getcumul_gettotal
+    targets = inc, inc_cumul, inc_total, inc_cumul_total, inc_freq
 );
 criterion_main!(benches);
