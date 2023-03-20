@@ -30,9 +30,10 @@ pub trait CumFreqTable {
     fn find_by_cumfreq(&self, cumfreq: usize) -> usize;
 
     /// Scale the table by dividing.
-    fn scale_div(&mut self, div: usize);
+    fn scale_div(&mut self, div_factor: usize);
 }
 
+mod binary_indexed_tree;
 mod linear;
 
 #[cfg(test)]
@@ -43,11 +44,13 @@ mod tests {
     #[test]
     fn it_works() {
         test_linear::<linear::CumFreqTableLinear>();
+        test_linear::<binary_indexed_tree::CumFreqTableBinaryIndexedTree>();
     }
 
     fn test_linear<T: CumFreqTable + Debug>() {
         let len = 10;
         let mut table = T::new(len);
+        dbg!(len, &table);
         assert_eq!(table.len(), len);
         assert_eq!(table.total(), 0);
         for i in 0..len {
@@ -61,6 +64,7 @@ mod tests {
             assert_eq!(table.cumfreq(i), i + 1);
         }
         assert_eq!(table.total(), len);
+        dbg!(&table);
         for i in 0..len {
             table.add(i, 2);
             assert_eq!(table.freq(i), 3);
@@ -71,14 +75,23 @@ mod tests {
             assert_eq!(table.freq(i), 3);
             assert_eq!(table.cumfreq(i), (i + 1) * 3);
         }
-        dbg!(&table);
         table.scale_div(2);
-        dbg!(&table);
         assert_eq!(table.total(), len);
         for i in 0..len {
-            dbg!(i);
             assert_eq!(table.freq(i), 3 / 2);
             assert_eq!(table.cumfreq(i), i + 1);
+        }
+        for i in (0..len).step_by(2) {
+            table.add(i, 41);
+        }
+        assert_eq!(table.total(), 5*42+5);
+        for i in 0..len {
+            if i % 2 == 0 {
+                assert_eq!(table.freq(i), 42);
+            } else {
+                assert_eq!(table.freq(i), 1);
+            }
+            assert_eq!(table.cumfreq(i), ((i+2)/2*42) + ((i+1)/2));
         }
     }
 }

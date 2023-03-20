@@ -46,10 +46,10 @@ impl super::CumFreqTable for CumFreqTableLinear {
         unsafe { r.unwrap_unchecked() }
     }
 
-    fn scale_div(&mut self, div: usize) {
+    fn scale_div(&mut self, div_factor: usize) {
         let mut sum = 0;
         for freq in self.freqs.iter_mut() {
-            *freq /= div;
+            *freq /= div_factor;
             sum += *freq;
         }
         self.total = sum;
