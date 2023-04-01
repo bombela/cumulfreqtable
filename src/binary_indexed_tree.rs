@@ -39,7 +39,7 @@ impl super::CumulFreqTable for CumulFreqTable {
 
     // Panics if pos is out of bounds.
     // O(㏒₂ len).
-    fn cumfreq(&self, mut pos: usize) -> usize {
+    fn sum(&self, mut pos: usize) -> usize {
         assert!(pos < self.tree.len(), "pos out of bounds");
         let mut sum = self.tree[0];
         while pos > 0 {
@@ -53,7 +53,7 @@ impl super::CumulFreqTable for CumulFreqTable {
 
     // O(㏒₂ len).
     fn total(&self) -> usize {
-        self.cumfreq(self.len() - 1)
+        self.sum(self.len() - 1)
     }
 
     // O(㏒₂ len).
@@ -72,16 +72,16 @@ impl super::CumulFreqTable for CumulFreqTable {
     }
 
     // O(㏒₂ len).
-    fn find_by_cumfreq(&self, mut cumfreq: usize) -> usize {
+    fn find_by_sum(&self, mut sum: usize) -> usize {
         // Modified binary search.
         let mut pos = 0;
-        if cumfreq > self.tree[0] {
+        if sum > self.tree[0] {
             let mut mid = self.tree.len() / 2;
             while mid != 0 {
                 let hi = pos + mid;
-                if cumfreq >= self.tree[hi] {
+                if sum >= self.tree[hi] {
                     pos = hi;
-                    cumfreq -= self.tree[pos];
+                    sum -= self.tree[pos];
                 }
                 mid /= 2;
             }
@@ -90,16 +90,16 @@ impl super::CumulFreqTable for CumulFreqTable {
     }
 
     // O(len ㏒₂ len).
-    fn scale_div(&mut self, div_factor: usize) {
+    fn scale_down(&mut self, factor: usize) {
         for mut pos in (1..self.tree.len()).rev() {
             // Equivalent to: self.add(pos, - self.freq(pos) / div); if it accepted a signed value.
             let freq = self.freq(pos);
-            let sub = freq - freq / div_factor;
+            let sub = freq - freq / factor;
             while pos < self.tree.len() {
                 self.tree[pos] -= sub;
                 pos += 1 << pos.trailing_zeros();
             }
         }
-        self.tree[0] /= div_factor;
+        self.tree[0] /= factor;
     }
 }

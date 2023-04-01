@@ -46,7 +46,7 @@ fn inc_cumul(c: &mut Criterion) {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));
-            table.cumfreq(rand_pos.sample(dist_pos));
+            table.sum(rand_pos.sample(dist_pos));
         })
     });
 }
@@ -66,7 +66,7 @@ fn inc_cumul_total(c: &mut Criterion) {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));
-            (table.cumfreq(rand_pos.sample(dist_pos)), table.total())
+            (table.sum(rand_pos.sample(dist_pos)), table.total())
         })
     });
 }

@@ -18,7 +18,7 @@ pub trait CumulFreqTable {
     }
 
     /// Get the cumulative frequency of the given position.
-    fn cumfreq(&self, pos: usize) -> usize;
+    fn sum(&self, pos: usize) -> usize;
 
     /// The total cumulative frequency.
     /// This is the same as the cumulative frequency of the last position, but may be more
@@ -29,10 +29,10 @@ pub trait CumulFreqTable {
     fn freq(&self, pos: usize) -> usize;
 
     /// Find the first position with an equal or greater cumulative frequency.
-    fn find_by_cumfreq(&self, cumfreq: usize) -> usize;
+    fn find_by_sum(&self, sum: usize) -> usize;
 
-    /// Scale the table by dividing.
-    fn scale_div(&mut self, div_factor: usize);
+    /// Divide every positions by the given factor.
+    fn scale_down(&mut self, factor: usize);
 }
 
 pub mod freq_array;
@@ -59,32 +59,32 @@ mod tests {
         assert_eq!(table.total(), 0);
         for i in 0..len {
             assert_eq!(table.freq(i), 0);
-            assert_eq!(table.cumfreq(i), 0);
+            assert_eq!(table.sum(i), 0);
         }
         assert_eq!(table.total(), 0);
         for i in 0..len {
             table.inc(i);
             assert_eq!(table.freq(i), 1);
-            assert_eq!(table.cumfreq(i), i + 1);
+            assert_eq!(table.sum(i), i + 1);
         }
         assert_eq!(table.total(), len);
         for i in 0..len {
             table.add(i, 2);
             assert_eq!(table.freq(i), 3);
-            assert_eq!(table.cumfreq(i), (i + 1) * 3);
+            assert_eq!(table.sum(i), (i + 1) * 3);
         }
         assert_eq!(table.total(), len * 3);
         for i in 0..len {
             assert_eq!(table.freq(i), 3);
-            assert_eq!(table.cumfreq(i), (i + 1) * 3);
+            assert_eq!(table.sum(i), (i + 1) * 3);
         }
         dbg!(&table);
-        table.scale_div(2);
+        table.scale_down(2);
         dbg!(&table);
         assert_eq!(table.total(), len);
         for i in 0..len {
             assert_eq!(table.freq(i), 3 / 2);
-            assert_eq!(table.cumfreq(i), i + 1);
+            assert_eq!(table.sum(i), i + 1);
         }
         for i in (0..len).step_by(2) {
             table.add(i, 41);
@@ -96,7 +96,7 @@ mod tests {
             } else {
                 assert_eq!(table.freq(i), 1);
             }
-            assert_eq!(table.cumfreq(i), ((i+2)/2*42) + ((i+1)/2));
+            assert_eq!(table.sum(i), ((i+2)/2*42) + ((i+1)/2));
         }
     }
 }

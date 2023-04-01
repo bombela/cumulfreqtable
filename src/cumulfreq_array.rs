@@ -30,7 +30,7 @@ impl super::CumulFreqTable for CumulFreqTable {
 
     // Panics if pos is out of bounds.
     // O(1).
-    fn cumfreq(&self, pos: usize) -> usize {
+    fn sum(&self, pos: usize) -> usize {
         assert!(pos < self.sums.len(), "pos out of bounds");
         self.sums[pos]
     }
@@ -54,18 +54,18 @@ impl super::CumulFreqTable for CumulFreqTable {
     }
 
     // O(len).
-    fn find_by_cumfreq(&self, cumfreq: usize) -> usize {
-        let r = self.sums.iter().position(|&sum| sum >= cumfreq);
+    fn find_by_sum(&self, sum: usize) -> usize {
+        let r = self.sums.iter().position(|&sum| sum >= sum);
         // SAFETY: self.sums is non-empty, so r is always Some.
         unsafe { r.unwrap_unchecked() }
     }
 
     // O(len).
-    fn scale_div(&mut self, div_factor: usize) {
+    fn scale_down(&mut self, factor: usize) {
         let mut psum = 0;
         let mut spsum = 0;
         for sum in self.sums.iter_mut() {
-            spsum += (*sum - psum) / div_factor;
+            spsum += (*sum - psum) / factor;
             psum = std::mem::replace(sum, spsum);
         }
     }
