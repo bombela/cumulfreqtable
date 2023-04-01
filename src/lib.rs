@@ -3,7 +3,6 @@
 /// TODO: Generic over the type of the frequency.
 pub trait CumulFreqTable {
     /// Create a new table with the given length.
-    /// Panic:
     fn new(len: usize) -> Self;
 
     /// Get the length of the table.
@@ -13,6 +12,7 @@ pub trait CumulFreqTable {
     fn add(&mut self, pos: usize, val: usize);
 
     /// Add one to the frequency of the given position.
+    /// A shortcut for `add(pos, 1)`.
     fn inc(&mut self, pos: usize) {
         self.add(pos, 1);
     }
@@ -21,6 +21,8 @@ pub trait CumulFreqTable {
     fn cumfreq(&self, pos: usize) -> usize;
 
     /// The total cumulative frequency.
+    /// This is the same as the cumulative frequency of the last position, but may be more
+    /// efficient depending on the implementation.
     fn total(&self) -> usize;
 
     /// Get the frequency of the given position.
