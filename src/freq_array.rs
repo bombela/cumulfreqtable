@@ -21,11 +21,13 @@ impl super::CumulFreqTable for FreqTable {
     }
 
     fn add(&mut self, pos: usize, val: usize) {
+        assert!(pos < self.freqs.len(), "pos out of bounds");
         self.freqs[pos] += val;
         self.total += val;
     }
 
     fn cumfreq(&self, pos: usize) -> usize {
+        assert!(pos < self.freqs.len(), "pos out of bounds");
         self.freqs[..=pos].iter().sum()
     }
 
@@ -34,6 +36,7 @@ impl super::CumulFreqTable for FreqTable {
     }
 
     fn freq(&self, pos: usize) -> usize {
+        assert!(pos < self.freqs.len(), "pos out of bounds");
         self.freqs[pos]
     }
 

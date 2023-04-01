@@ -9,7 +9,7 @@ macro_rules! bench_tables {
             .summary_scale(AxisScale::Logarithmic)
         );
         let rand_pos = StdRng::from_entropy();
-        for i in 2..=16 {
+        for i in (2..=16).step_by(2) {
             let len = 1 << i;
             group.throughput(criterion::Throughput::Elements(len as u64));
             let dist_pos = Uniform::from(0..len);
@@ -84,8 +84,8 @@ fn inc_freq(c: &mut Criterion) {
 fn config() -> Criterion {
     use std::time::Duration;
     Criterion::default()
-        .warm_up_time(Duration::from_millis(500))
-        .measurement_time(Duration::from_millis(1500))
+        .warm_up_time(Duration::from_millis(250))
+        .measurement_time(Duration::from_millis(500))
 }
 
 criterion_group!(name = benches; config = config();

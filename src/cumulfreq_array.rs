@@ -18,20 +18,25 @@ impl super::CumulFreqTable for CumulFreqTable {
     }
 
     fn add(&mut self, pos: usize, val: usize) {
+        assert!(pos < self.sums.len(), "pos out of bounds");
         for sum in self.sums[pos..].iter_mut() {
             *sum += val;
         }
     }
 
     fn cumfreq(&self, pos: usize) -> usize {
+        assert!(pos < self.sums.len(), "pos out of bounds");
         self.sums[pos]
     }
 
     fn total(&self) -> usize {
-        self.sums[self.len() - 1]
+        let r = self.sums.last().copied();
+        // SAFETY: self.sums is non-empty, so r is always Some.
+        unsafe { r.unwrap_unchecked() }
     }
 
     fn freq(&self, pos: usize) -> usize {
+        assert!(pos < self.sums.len(), "pos out of bounds");
         if pos == 0 {
             self.sums[0]
         } else {
@@ -41,7 +46,7 @@ impl super::CumulFreqTable for CumulFreqTable {
 
     fn find_by_cumfreq(&self, cumfreq: usize) -> usize {
         let r = self.sums.iter().position(|&sum| sum >= cumfreq);
-        // SAFETY: self.freqs is non-empty, so r is always Some.
+        // SAFETY: self.sums is non-empty, so r is always Some.
         unsafe { r.unwrap_unchecked() }
     }
 
