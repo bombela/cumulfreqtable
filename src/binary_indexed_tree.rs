@@ -76,10 +76,20 @@ impl super::CumulFreqTable for CumulFreqTable {
         // Modified binary search.
         let mut pos = 0;
         if sum > self.tree[0] {
-            let mut mid = self.tree.len() / 2;
+            sum -= self.tree[0];
+            // .len() is always >= 1.
+            // The -1 and +1 dance is to avoid overflow.
+            let mut mid = (((self.len() - 1) / 2) + 1).next_power_of_two();
+            /* It is a more efficient version of this:
+            let mut mid = self
+                .len()
+                .checked_next_power_of_two()
+                .map(|x| x / 2)
+                .unwrap_or(1 << (usize::BITS-1));
+            */
             while mid != 0 {
                 let hi = pos + mid;
-                if sum >= self.tree[hi] {
+                if hi < self.len() && sum >= self.tree[hi] {
                     pos = hi;
                     sum -= self.tree[pos];
                 }

@@ -55,7 +55,7 @@ impl super::CumulFreqTable for CumulFreqTable {
 
     // O(len).
     fn find_by_sum(&self, sum: usize) -> usize {
-        let r = self.sums.iter().position(|&sum| sum >= sum);
+        let r = self.sums.iter().position(|&i_sum| i_sum >= sum);
         // SAFETY: self.sums is non-empty, so r is always Some.
         unsafe { r.unwrap_unchecked() }
     }

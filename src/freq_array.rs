@@ -51,10 +51,10 @@ impl super::CumulFreqTable for FreqTable {
 
     // O(len).
     fn find_by_sum(&self, sum: usize) -> usize {
-        let mut sum = 0;
+        let mut r_sum = 0;
         let r = self.freqs.iter().position(|&freq| {
-            sum += freq;
-            sum >= sum
+            r_sum += freq;
+            r_sum >= sum
         });
         // SAFETY: self.freqs is non-empty, so r is always Some.
         unsafe { r.unwrap_unchecked() }
