@@ -8,6 +8,7 @@ pub struct CumulFreqTable {
 }
 
 impl super::CumulFreqTable for CumulFreqTable {
+    // Pniics if len < 1.
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {
@@ -15,10 +16,13 @@ impl super::CumulFreqTable for CumulFreqTable {
         }
     }
 
+    // O(1).
     fn len(&self) -> usize {
         self.tree.len()
     }
 
+    // Panics if pos is out of bounds.
+    // O(㏒₂ len).
     fn add(&mut self, mut pos: usize, val: usize) {
         assert!(pos < self.tree.len(), "pos out of bounds");
         if pos == 0 {
@@ -33,6 +37,8 @@ impl super::CumulFreqTable for CumulFreqTable {
         }
     }
 
+    // Panics if pos is out of bounds.
+    // O(㏒₂ len).
     fn cumfreq(&self, mut pos: usize) -> usize {
         assert!(pos < self.tree.len(), "pos out of bounds");
         let mut sum = self.tree[0];
@@ -45,10 +51,12 @@ impl super::CumulFreqTable for CumulFreqTable {
         sum
     }
 
+    // O(㏒₂ len).
     fn total(&self) -> usize {
         self.cumfreq(self.len() - 1)
     }
 
+    // O(㏒₂ len).
     fn freq(&self, mut pos: usize) -> usize {
         assert!(pos < self.tree.len(), "pos out of bounds");
         let mut freq = self.tree[pos];
@@ -63,6 +71,7 @@ impl super::CumulFreqTable for CumulFreqTable {
         freq
     }
 
+    // O(㏒₂ len).
     fn find_by_cumfreq(&self, mut cumfreq: usize) -> usize {
         // Modified binary search.
         let mut pos = 0;
@@ -80,6 +89,7 @@ impl super::CumulFreqTable for CumulFreqTable {
         pos
     }
 
+    // O(len ㏒₂ len).
     fn scale_div(&mut self, div_factor: usize) {
         for mut pos in (1..self.tree.len()).rev() {
             // Equivalent to: self.add(pos, - self.freq(pos) / div); if it accepted a signed value.

@@ -28,7 +28,7 @@ pub trait CumulFreqTable {
     /// Get the frequency of the given position.
     fn freq(&self, pos: usize) -> usize;
 
-    /// Find the position with the given cumulative frequency.
+    /// Find the first position with an equal or greater cumulative frequency.
     fn find_by_cumfreq(&self, cumfreq: usize) -> usize;
 
     /// Scale the table by dividing.

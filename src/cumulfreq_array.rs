@@ -6,6 +6,7 @@ pub struct CumulFreqTable {
 }
 
 impl super::CumulFreqTable for CumulFreqTable {
+    /// Panics if len < 1.
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {
@@ -13,10 +14,13 @@ impl super::CumulFreqTable for CumulFreqTable {
         }
     }
 
+    // O(1).
     fn len(&self) -> usize {
         self.sums.len()
     }
 
+    // Panics if pos is out of bounds.
+    // O(len).
     fn add(&mut self, pos: usize, val: usize) {
         assert!(pos < self.sums.len(), "pos out of bounds");
         for sum in self.sums[pos..].iter_mut() {
@@ -24,17 +28,22 @@ impl super::CumulFreqTable for CumulFreqTable {
         }
     }
 
+    // Panics if pos is out of bounds.
+    // O(1).
     fn cumfreq(&self, pos: usize) -> usize {
         assert!(pos < self.sums.len(), "pos out of bounds");
         self.sums[pos]
     }
 
+    // O(1).
     fn total(&self) -> usize {
         let r = self.sums.last().copied();
         // SAFETY: self.sums is non-empty, so r is always Some.
         unsafe { r.unwrap_unchecked() }
     }
 
+    // Panics if pos is out of bounds.
+    // O(1).
     fn freq(&self, pos: usize) -> usize {
         assert!(pos < self.sums.len(), "pos out of bounds");
         if pos == 0 {
@@ -44,12 +53,14 @@ impl super::CumulFreqTable for CumulFreqTable {
         }
     }
 
+    // O(len).
     fn find_by_cumfreq(&self, cumfreq: usize) -> usize {
         let r = self.sums.iter().position(|&sum| sum >= cumfreq);
         // SAFETY: self.sums is non-empty, so r is always Some.
         unsafe { r.unwrap_unchecked() }
     }
 
+    // O(len).
     fn scale_div(&mut self, div_factor: usize) {
         let mut psum = 0;
         let mut spsum = 0;

@@ -84,7 +84,7 @@ fn inc_freq(c: &mut Criterion) {
 fn config() -> Criterion {
     use std::time::Duration;
     Criterion::default()
-        .warm_up_time(Duration::from_millis(250))
+        .warm_up_time(Duration::from_millis(50))
         .measurement_time(Duration::from_millis(500))
 }
 
