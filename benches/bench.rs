@@ -1,13 +1,13 @@
-use criterion::{ criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion, PlotConfiguration, };
+use criterion::{
+    criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion, PlotConfiguration,
+};
 use cumulfreqtable::*;
 use rand::{distributions::Uniform, prelude::*};
 
 macro_rules! bench_all_tables {
     ($step_by:expr, $c:ident, $name:expr, $f:expr) => {
         let mut group = $c.benchmark_group($name);
-        group.plot_config(PlotConfiguration::default()
-            .summary_scale(AxisScale::Logarithmic)
-        );
+        group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
         let rand_pos = StdRng::from_entropy();
         for i in (2..=16).step_by($step_by) {
             let len = 1 << i;
@@ -20,12 +20,20 @@ macro_rules! bench_all_tables {
             );
             group.bench_with_input(
                 BenchmarkId::new("cumulfreq_array", len),
-                &(cumulfreq_array::CumulFreqTable::new(len), rand_pos.clone(), dist_pos),
+                &(
+                    cumulfreq_array::CumulFreqTable::new(len),
+                    rand_pos.clone(),
+                    dist_pos,
+                ),
                 $f,
             );
             group.bench_with_input(
                 BenchmarkId::new("binary_indexed_tree", len),
-                &(binary_indexed_tree::CumulFreqTable::new(len), rand_pos.clone(), dist_pos),
+                &(
+                    binary_indexed_tree::CumulFreqTable::new(len),
+                    rand_pos.clone(),
+                    dist_pos,
+                ),
                 $f,
             );
         }
