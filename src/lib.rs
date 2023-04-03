@@ -1,5 +1,68 @@
-/// A cumulative frequency table computes the cumulative frequency for each position in the table.
-/// Different implementations will offer different performance characteristics.
+//! A cumulative frequency table stores and/or compute the absolute frequency and the cumulative
+//! frequency for ever position in the table.
+//! 
+//! Formal definition from [Wikipedia](https://en.wikipedia.org/wiki/Frequency_(statistics)):
+//! > In statistics, the frequency (or absolute frequency) of an event *i* is the number *nᵢ* of
+//! times the observation has occurred/recorded in an experiment or study. The cumulative frequency
+//! is the total of the absolute frequencies of all events at or below a certain point in an
+//! ordered list of events.
+//!
+//! # Example
+//!
+//! ```rust
+//! use cumulfreqtable::CumulFreqTable; // Import the trait in scope.
+//!
+//! let mut table = cumulfreqtable::BinaryIndexedTree::new(16);
+//! table.inc(0);
+//! table.inc(3);
+//! table.add(5, 3);
+//! 
+//! assert_eq!(table.freq(0), 1);
+//! assert_eq!(table.freq(3), 1);
+//! assert_eq!(table.freq(5), 3);
+//! assert_eq!(table.freq(6), 0);
+//!
+//! assert_eq!(table.sum(0), 1);
+//! assert_eq!(table.sum(3), 2);
+//! assert_eq!(table.sum(5), 5);
+//! assert_eq!(table.sum(6), 5);
+//!
+//! assert_eq!(table.total(), 5);
+//! ```
+//!
+//! # Implementations
+//!
+//! This crate offers two implementations of the [CumulFreqTable] trait:
+//! - [FreqTable]: stores the absolute frequency of every positions in an array O(1)
+//! but computes the cumulative frequency in O(len). Best for small tables.
+//! - [BinaryIndexedTree]: stores the cumulative frequency of every positions in
+//! a binary indexed tree. The runtime complexity is O(㏒₂ len) for all operations.
+//!
+//! There is also [cumulfreq_array::CumulFreqTable] that computes and stores the cumulative
+//! frequency of every positions on update. It's only purpose is to validate the benchmark results.
+//!
+//! ## Benchmarks
+//!
+//! For small tables, [FreqTable] is slightly faster than [BinaryIndexedTree], presumably because
+//! it fits within the CPU cache. The cross-over point depends on the computer.
+//!
+//! You can run the benchmarks yourself with `cargo criterion`.
+//!
+//! Notice that the graphs below have logarithmic scales.
+//!
+//! #### Intel i7-4790K (2014)
+//! On a 2014 Intel i7-4790K with dual-channel DDR3 1600 Mhz, the binary_indexed_tree becomes
+//! faster somewhere above 256×64 bits elements.
+#![doc = include_str!("bench_intel_2014.md")]
+//!
+//! #### AMD Ryzen 7 PRO 5850U (2021)
+//! On a 2021 AMD Ryzen 7 PRO 5850U with dual-channel DDR4 3200 Mhz, the binary_indexed_tree becomes
+//! faster somewhere above 512×64 bits elements.
+#![doc = include_str!("bench_amd_2021.md")]
+
+/// A cumulative frequency table maintains the cumulative frequency for every positions in the
+/// table. Different implementations offer different performance characteristics.
+///
 /// TODO: Generic over the type of the frequency.
 pub trait CumulFreqTable {
     /// Create a new table with the given length.
@@ -21,8 +84,8 @@ pub trait CumulFreqTable {
     fn sum(&self, pos: usize) -> usize;
 
     /// The total cumulative frequency.
-    /// This is the same as the cumulative frequency of the last position, but may be more
-    /// efficient depending on the implementation.
+    /// This is the same as the cumulative frequency of the last position, but more efficient
+    /// depending on the implementation.
     fn total(&self) -> usize;
 
     /// Get the frequency of the given position.
@@ -38,6 +101,9 @@ pub trait CumulFreqTable {
 pub mod freq_array;
 pub mod cumulfreq_array;
 pub mod binary_indexed_tree;
+
+pub use freq_array::FreqTable;
+pub use binary_indexed_tree::CumulFreqTable as BinaryIndexedTree;
 
 #[cfg(test)]
 mod tests {

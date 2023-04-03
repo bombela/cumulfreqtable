@@ -1,5 +1,7 @@
 /// Store the cumulative frequencies of each position in a array.
-/// Add to the cumulative frequency of a position by adding to all precedent position.
+/// The cumulative frequency is computed on update. In practice this is slightly slower than
+/// freq_array::FreqTable because of the extra memory writes. It exbibits identical big-O runtime
+/// complexity. And is only useful for validating benchmarks.
 #[derive(Debug, Clone)]
 pub struct CumulFreqTable {
     sums: Box<[usize]>,

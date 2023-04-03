@@ -2,14 +2,14 @@ use criterion::{ criterion_group, criterion_main, AxisScale, BenchmarkId, Criter
 use cumulfreqtable::*;
 use rand::{distributions::Uniform, prelude::*};
 
-macro_rules! bench_tables {
-    ($c:ident, $name:expr, $f:expr) => {
+macro_rules! bench_all_tables {
+    ($step_by:expr, $c:ident, $name:expr, $f:expr) => {
         let mut group = $c.benchmark_group($name);
         group.plot_config(PlotConfiguration::default()
             .summary_scale(AxisScale::Logarithmic)
         );
         let rand_pos = StdRng::from_entropy();
-        for i in (2..=16).step_by(2) {
+        for i in (2..=16).step_by($step_by) {
             let len = 1 << i;
             group.throughput(criterion::Throughput::Elements(len as u64));
             let dist_pos = Uniform::from(0..len);
@@ -30,10 +30,13 @@ macro_rules! bench_tables {
             );
         }
     };
+    ($c:ident, $name:expr, $f:expr) => {
+        bench_all_tables!(2, $c, $name, $f);
+    };
 }
 
 fn inc(c: &mut Criterion) {
-    bench_tables!(c, "inc", |b, input| {
+    bench_all_tables!(c, "inc", |b, input| {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));
@@ -42,7 +45,7 @@ fn inc(c: &mut Criterion) {
 }
 
 fn inc_cumul(c: &mut Criterion) {
-    bench_tables!(c, "inc+cumul", |b, input| {
+    bench_all_tables!(c, "inc+cumul", |b, input| {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));
@@ -52,7 +55,7 @@ fn inc_cumul(c: &mut Criterion) {
 }
 
 fn inc_total(c: &mut Criterion) {
-    bench_tables!(c, "inc+total", |b, input| {
+    bench_all_tables!(c, "inc+total", |b, input| {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));
@@ -62,7 +65,7 @@ fn inc_total(c: &mut Criterion) {
 }
 
 fn inc_cumul_total(c: &mut Criterion) {
-    bench_tables!(c, "inc+cumul+total", |b, input| {
+    bench_all_tables!(1, c, "inc+cumul+total", |b, input| {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));
@@ -72,7 +75,7 @@ fn inc_cumul_total(c: &mut Criterion) {
 }
 
 fn inc_freq(c: &mut Criterion) {
-    bench_tables!(c, "inc+freq", |b, input| {
+    bench_all_tables!(c, "inc+freq", |b, input| {
         let (mut table, mut rand_pos, dist_pos) = input.clone();
         b.iter(|| {
             table.inc(rand_pos.sample(dist_pos));

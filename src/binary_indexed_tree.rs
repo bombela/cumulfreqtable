@@ -2,13 +2,19 @@
 /// Just as an integer is the sum of appropriate powers of two, so can a cumulative frequency be
 /// represented as the appropriate sum of sets of cumulative sub-frequencies.
 /// From Peter m. Fenwick, "A new data structure for cumulative frequency tables." (1994)
+///
+///
+/// The most important operations are O(㏒₂ len) (instead of O(len) for [crate::FreqTable]).
+///
+/// It is slightly slower than [crate::FreqTable] for small tables depending on the computer. See
+/// the [module][crate#benchmarks] documentation for more details.
 #[derive(Debug, Clone)]
 pub struct CumulFreqTable {
     tree: Box<[usize]>,
 }
 
 impl super::CumulFreqTable for CumulFreqTable {
-    // Pniics if len < 1.
+    /// Panics if len < 1.
     fn new(len: usize) -> Self {
         assert!(len > 0, "table must be non-empty");
         Self {
@@ -16,13 +22,13 @@ impl super::CumulFreqTable for CumulFreqTable {
         }
     }
 
-    // O(1).
+    /// O(1).
     fn len(&self) -> usize {
         self.tree.len()
     }
 
-    // Panics if pos is out of bounds.
-    // O(㏒₂ len).
+    /// Panics if pos is out of bounds.
+    /// O(㏒₂ len).
     fn add(&mut self, mut pos: usize, val: usize) {
         assert!(pos < self.tree.len(), "pos out of bounds");
         if pos == 0 {
@@ -37,8 +43,8 @@ impl super::CumulFreqTable for CumulFreqTable {
         }
     }
 
-    // Panics if pos is out of bounds.
-    // O(㏒₂ len).
+    /// Panics if pos is out of bounds.
+    /// O(㏒₂ len).
     fn sum(&self, mut pos: usize) -> usize {
         assert!(pos < self.tree.len(), "pos out of bounds");
         let mut sum = self.tree[0];
@@ -51,12 +57,12 @@ impl super::CumulFreqTable for CumulFreqTable {
         sum
     }
 
-    // O(㏒₂ len).
+    /// O(㏒₂ len).
     fn total(&self) -> usize {
         self.sum(self.len() - 1)
     }
 
-    // O(㏒₂ len).
+    /// O(㏒₂ len).
     fn freq(&self, mut pos: usize) -> usize {
         assert!(pos < self.tree.len(), "pos out of bounds");
         let mut freq = self.tree[pos];
@@ -71,7 +77,7 @@ impl super::CumulFreqTable for CumulFreqTable {
         freq
     }
 
-    // O(㏒₂ len).
+    /// O(㏒₂ len).
     fn find_by_sum(&self, mut sum: usize) -> usize {
         // Modified binary search.
         let mut pos = 0;
@@ -99,7 +105,7 @@ impl super::CumulFreqTable for CumulFreqTable {
         pos
     }
 
-    // O(len ㏒₂ len).
+    /// O(len ㏒₂ len).
     fn scale_down(&mut self, factor: usize) {
         for mut pos in (1..self.tree.len()).rev() {
             // Equivalent to: self.add(pos, - self.freq(pos) / div); if it accepted a signed value.

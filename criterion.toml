@@ -1,7 +1,7 @@
 [colors]
 comparison_colors = [
-	{r = 0x00, g = 0x3f, b = 0x5c},
 	{r = 0xbc, g = 0x50, b = 0x90},
+	{r = 0x00, g = 0x3f, b = 0x5c},
 	{r = 0xff, g = 0xa6, b = 0x00},
 	{r = 8, g = 34, b = 34},
 	{r = 6, g = 139, b = 87},
