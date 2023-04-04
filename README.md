@@ -2,7 +2,7 @@
 
 [![Documentation](https://docs.rs/cumulfreqtable/badge.svg)](https://docs.rs/cumulfreqtable)
 
-Store cumulative frequencies with a binary indexed tree in a array.
+Store cumulative frequencies with a binary indexed tree in an array.
 
 Just as an integer is the sum of appropriate powers of two, so can a cumulative frequency be
 represented as the appropriate sum of sets of cumulative sub-frequencies.

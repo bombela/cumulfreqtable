@@ -1,9 +1,9 @@
 use std::ops::{AddAssign, Div, DivAssign, Sub, SubAssign};
 
-/// Store the cumulative frequencies with a binary indexed tree in a array.
-/// Just as an integer is the sum of appropriate powers of two, so can a cumulative frequency be
+/// store the cumulative frequencies with a binary indexed tree in an array.
+/// just as an integer is the sum of appropriate powers of two, so can a cumulative frequency be
 /// represented as the appropriate sum of sets of cumulative sub-frequencies.
-/// From Peter m. Fenwick, "A new data structure for cumulative frequency tables." (1994)
+/// from peter m. fenwick, "a new data structure for cumulative frequency tables." (1994)
 ///
 ///
 /// The most important operations are O(㏒₂ len) (instead of O(len) for [crate::FreqTable]).
