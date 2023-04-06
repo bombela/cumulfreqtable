@@ -87,27 +87,45 @@ fn inc_total(c: &mut Criterion) {
 }
 
 fn inc_cumul_total(c: &mut Criterion) {
-    bench_all_tables!((2..=16).step_by(1), c, "inc+cumul+total", |b, input| {
-        let (mut table, mut rand_pos, dist_pos) = input.clone();
-        b.iter(|| {
-            table.inc(rand_pos.sample(dist_pos));
-            (table.sum(rand_pos.sample(dist_pos)), table.total())
-        })
-    }, usize);
-    bench_all_tables!((2..=10).step_by(1), c, "inc+cumul+total", |b, input| {
-        let (mut table, mut rand_pos, dist_pos) = input.clone();
-        b.iter(|| {
-            table.inc(rand_pos.sample(dist_pos));
-            (table.sum(rand_pos.sample(dist_pos)), table.total())
-        })
-    }, u32);
-    bench_all_tables!((2..=10).step_by(1), &mut *c, "inc+cumul+total", |b, input| {
-        let (mut table, mut rand_pos, dist_pos) = input.clone();
-        b.iter(|| {
-            table.inc(rand_pos.sample(dist_pos));
-            (table.sum(rand_pos.sample(dist_pos)), table.total())
-        })
-    }, u16);
+    bench_all_tables!(
+        (2..=16).step_by(1),
+        c,
+        "inc+cumul+total",
+        |b, input| {
+            let (mut table, mut rand_pos, dist_pos) = input.clone();
+            b.iter(|| {
+                table.inc(rand_pos.sample(dist_pos));
+                (table.sum(rand_pos.sample(dist_pos)), table.total())
+            })
+        },
+        usize
+    );
+    bench_all_tables!(
+        (2..=10).step_by(1),
+        c,
+        "inc+cumul+total",
+        |b, input| {
+            let (mut table, mut rand_pos, dist_pos) = input.clone();
+            b.iter(|| {
+                table.inc(rand_pos.sample(dist_pos));
+                (table.sum(rand_pos.sample(dist_pos)), table.total())
+            })
+        },
+        u32
+    );
+    bench_all_tables!(
+        (2..=10).step_by(1),
+        &mut *c,
+        "inc+cumul+total",
+        |b, input| {
+            let (mut table, mut rand_pos, dist_pos) = input.clone();
+            b.iter(|| {
+                table.inc(rand_pos.sample(dist_pos));
+                (table.sum(rand_pos.sample(dist_pos)), table.total())
+            })
+        },
+        u16
+    );
 }
 
 fn inc_freq(c: &mut Criterion) {

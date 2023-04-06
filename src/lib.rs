@@ -65,9 +65,17 @@
 ///
 /// By default, the type used to store the frequency and cumulative frequency is `usize`. Consider
 /// the risk of overflow before using a smaller type.
-pub trait CumulFreqTable<F: std::convert::From<u8> = usize> {
-    /// Create a new table with the given length.
+pub trait CumulFreqTable<F: From<u8> = usize> {
+    /// Create a new table with the given length and zero frequency for every positions.
+    /// Might be more efficient than `with_freq(len, 0)`.
     fn new(len: usize) -> Self;
+
+    /// Create a new table with the given length and frequency for every positions.
+    fn with_freq(len: usize, init: F) -> Self
+    where
+        usize: TryInto<F>,
+        <usize as TryInto<F>>::Error: std::fmt::Debug,
+        F: std::fmt::Debug;
 
     /// Get the length of the table.
     fn len(&self) -> usize;
@@ -75,10 +83,19 @@ pub trait CumulFreqTable<F: std::convert::From<u8> = usize> {
     /// Add to the frequency of the given position.
     fn add(&mut self, pos: usize, val: F);
 
+    /// Substract to the frequency of the given position.
+    fn sub(&mut self, pos: usize, val: F);
+
     /// Add one to the frequency of the given position.
     /// A shortcut for `add(pos, 1)`.
     fn inc(&mut self, pos: usize) {
         self.add(pos, 1.into());
+    }
+
+    /// Substract one to the frequency of the given position.
+    /// A shortcut for `sub(pos, 1)`.
+    fn dec(&mut self, pos: usize) {
+        self.sub(pos, 1.into());
     }
 
     /// Get the cumulative frequency of the given position.
@@ -95,13 +112,19 @@ pub trait CumulFreqTable<F: std::convert::From<u8> = usize> {
     /// Find the first position with an equal or greater cumulative frequency.
     fn find_by_sum(&self, sum: F) -> usize;
 
-    /// Divide every positions by the given factor.
-    fn scale_down(&mut self, factor: F);
+    /// Scale the frequency of every positions by the given factor.
+    /// scale_freq is given the frequency to scale (not the cumulative frequency).
+    /// Examples:
+    ///     - `scale(|f| f / 2)` halves rounding down.
+    ///     - `scale(|f| (f + 1) / 2)` halves rounding up.
+    fn scale<C: Fn(F) -> F>(&mut self, scale_freq: C);
 }
 
 pub mod binary_indexed_tree;
 pub mod cumulfreq_array;
 pub mod freq_array;
+
+use std::convert::From;
 
 pub use binary_indexed_tree::CumulFreqTable as BinaryIndexedTree;
 pub use freq_array::FreqTable;
@@ -114,21 +137,21 @@ mod tests {
     use std::ops::{Add, Div, Mul, Sub};
 
     #[test]
-    fn test_linear_usize() {
-        test_linear::<usize>();
+    fn long_test_usize() {
+        long_test::<usize>();
     }
 
     #[test]
-    fn test_linear_i16() {
-        test_linear::<i16>();
+    fn long_test_i16() {
+        long_test::<i16>();
     }
 
     #[test]
-    fn test_linear_u16() {
-        test_linear::<u16>();
+    fn long_test_u16() {
+        long_test::<u16>();
     }
 
-    fn test_linear<F>()
+    fn long_test<F>()
     where
         F: Copy
             + Debug
@@ -139,21 +162,23 @@ mod tests {
             + Mul<Output = F>
             + Div<Output = F>
             + PartialEq,
+        usize: TryInto<F>,
+        <usize as TryInto<F>>::Error: std::fmt::Debug,
         freq_array::FreqTable<F>: CumulFreqTable<F>,
         cumulfreq_array::CumulFreqTable<F>: CumulFreqTable<F>,
         binary_indexed_tree::CumulFreqTable<F>: CumulFreqTable<F>,
     {
         for len in 1..=32 {
-            dbg!("freq_array", len);
-            test_linear_impl::<F, freq_array::FreqTable<F>>(len);
-            dbg!("cumulfreq_array", len);
-            test_linear_impl::<F, cumulfreq_array::CumulFreqTable<F>>(len);
-            dbg!("binary_indexed_tree", len);
-            test_linear_impl::<F, binary_indexed_tree::CumulFreqTable<F>>(len);
+            //dbg!("freq_array", len);
+            long_test_impl::<F, freq_array::FreqTable<F>>(len);
+            //dbg!("cumulfreq_array", len);
+            long_test_impl::<F, cumulfreq_array::CumulFreqTable<F>>(len);
+            //dbg!("binary_indexed_tree", len);
+            long_test_impl::<F, binary_indexed_tree::CumulFreqTable<F>>(len);
         }
     }
 
-    fn test_linear_impl<F, T>(len: usize)
+    fn long_test_impl<F, T>(len: usize)
     where
         F: Copy
             + Debug
@@ -163,10 +188,10 @@ mod tests {
             + Mul<Output = F>
             + Div<Output = F>
             + PartialEq,
+        usize: TryInto<F>,
+        <usize as TryInto<F>>::Error: std::fmt::Debug,
         T: CumulFreqTable<F> + Debug + 'static,
     {
-        let mut table: T = T::new(len);
-
         let flen: F = (len as u8).into();
         let f0: F = 0_u8.into();
         let f1: F = 1_u8.into();
@@ -174,43 +199,67 @@ mod tests {
         let f3: F = 3_u8.into();
         let f42: F = 42_u8.into();
 
-        dbg!(len, &table);
+        // Table with all freqs to 1.
+        let mut table: T = T::with_freq(len, f1);
+        //dbg!(&table);
+
         assert_eq!(table.len(), len);
+        assert_eq!(table.total(), flen);
+        for i in 0..len {
+            assert_eq!(table.freq(i), f1);
+            assert_eq!(table.sum(i), F::from(i as u8) + f1);
+        }
+
+        // All freqs to zero.
+        for i in 0..len {
+            table.dec(i);
+        }
         assert_eq!(table.total(), f0);
+
+        // Adding zeroes, should not change anything.
         for i in 0..len {
             assert_eq!(table.freq(i), f0);
             assert_eq!(table.sum(i), f0);
         }
         assert_eq!(table.total(), f0);
+
+        // All freqs to 1.
         for i in 0..len {
             table.inc(i);
             assert_eq!(table.freq(i), f1);
             assert_eq!(table.sum(i), F::from(i as u8) + f1);
         }
         assert_eq!(table.total(), flen);
+
+        // All freqs to 3.
         for i in 0..len {
             table.add(i, 2_u8.into());
             assert_eq!(table.freq(i), f3);
             assert_eq!(table.sum(i), (F::from(i as u8) + f1) * f3);
         }
         assert_eq!(table.total(), flen * f3);
+
+        // All freqs should still be 3.
         for i in 0..len {
             assert_eq!(table.freq(i), f3);
             assert_eq!(table.sum(i), (F::from(i as u8) + f1) * f3);
         }
-        dbg!(&table);
+
+        // Find every element by sum.
         for i in 0..len {
-            dbg!(i, (i + 1) * 3, table.sum(i));
+            //dbg!(i, (i + 1) * 3, table.sum(i));
             assert_eq!(table.find_by_sum((F::from(i as u8) + f1) * f3), i);
         }
-        dbg!(&table);
-        table.scale_down(f2);
-        dbg!(&table);
+
+        // Divide by two, flooring. So all freqs become 1.
+        table.scale(|x| x / f2);
         assert_eq!(table.total(), flen);
         for i in 0..len {
             assert_eq!(table.freq(i), f3 / f2);
             assert_eq!(table.sum(i), F::from(i as u8) + f1);
         }
+
+        // Bring every other positions to 42.
         for i in (0..len).step_by(2) {
             table.add(i, f42 - f1);
         }
@@ -228,6 +277,69 @@ mod tests {
                 table.sum(i),
                 ((F::from(i as u8) + f2) / f2 * f42) + ((F::from(i as u8) + f1) / f2)
             );
+        }
+    }
+
+    #[test]
+    fn scale_test() {
+        type F = usize;
+        for len in 1..=32 {
+            //dbg!("scale_test freq_array", len);
+            scale_test_impl::<F, freq_array::FreqTable<F>>(len);
+            //dbg!("scale_test cumulfreq_array", len);
+            scale_test_impl::<F, cumulfreq_array::CumulFreqTable<F>>(len);
+            //dbg!("scale_test binary_indexed_tree", len);
+            scale_test_impl::<F, binary_indexed_tree::CumulFreqTable<F>>(len);
+        }
+    }
+
+    fn scale_test_impl<F, T>(len: usize)
+    where
+        F: Copy
+            + Debug
+            + From<u8>
+            + Add<Output = F>
+            + Sub<Output = F>
+            + Mul<Output = F>
+            + Div<Output = F>
+            + PartialEq,
+        usize: TryInto<F>,
+        <usize as TryInto<F>>::Error: std::fmt::Debug,
+        T: CumulFreqTable<F> + Debug + 'static + Clone,
+    {
+        let mut table = T::with_freq(len, 1.into());
+        for i in 0..len {
+            assert_eq!(table.freq(i), 1.into());
+        }
+        table.scale(|x| x * 2.into());
+        for i in 0..len {
+            assert_eq!(table.freq(i), 2.into());
+        }
+        table.scale(|x| (x + 1.into()) / 2.into());
+        for i in 0..len {
+            assert_eq!(table.freq(i), 1.into());
+        }
+        table.scale(|x| x * 42.into());
+        for i in 0..len {
+            assert_eq!(table.freq(i), 42.into());
+        }
+        let mut a = table.clone();
+        let mut b = table.clone();
+        a.scale(|x| x / 5.into());
+        b.scale(|x| (x + 1.into()) / 5.into());
+        for i in 0..len {
+            assert_eq!(a.freq(i), 8.into());
+        }
+        for i in 0..len {
+            assert_eq!(b.freq(i), 8.into());
+        }
+        a.scale(|x| x / 9.into());
+        b.scale(|x| (x + 1.into()) / 9.into());
+        for i in 0..len {
+            assert_eq!(a.freq(i), 0.into());
+        }
+        for i in 0..len {
+            assert_eq!(b.freq(i), 1.into());
         }
     }
 }

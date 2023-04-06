@@ -1,4 +1,4 @@
-use std::ops::{AddAssign, Div, DivAssign, Sub, SubAssign};
+use std::ops::{AddAssign, Shl, Sub, SubAssign};
 
 /// store the cumulative frequencies with a binary indexed tree in an array.
 /// just as an integer is the sum of appropriate powers of two, so can a cumulative frequency be
@@ -10,7 +10,7 @@ use std::ops::{AddAssign, Div, DivAssign, Sub, SubAssign};
 ///
 /// It is slightly slower than [crate::FreqTable] for small tables depending on the computer. See
 /// the [module][crate#benchmarks] documentation for more details.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CumulFreqTable<F = usize> {
     tree: Box<[F]>,
 }
@@ -20,10 +20,9 @@ where
     F: std::convert::From<u8>
         + Copy
         + AddAssign
-        + Sub<Output = F>
         + SubAssign
-        + Div<Output = F>
-        + DivAssign
+        + Sub<Output = F>
+        + Shl<u32, Output = F>
         + PartialOrd,
 {
     /// Panics if len < 1.
@@ -34,12 +33,35 @@ where
         }
     }
 
+    /// Panics if len < 1.
+    /// O(len).
+    fn with_freq(len: usize, init: F) -> Self
+    where
+        usize: TryInto<F>,
+        <usize as TryInto<F>>::Error: std::fmt::Debug,
+    {
+        assert!(len > 0, "table must be non-empty");
+        Self {
+            tree: (0..len)
+                .map(|i| {
+                    if i == 0 {
+                        init
+                    } else {
+                        init << i.trailing_zeros()
+                    }
+                })
+                .collect::<Vec<F>>()
+                .into_boxed_slice(),
+        }
+    }
+
     /// O(1).
     fn len(&self) -> usize {
         self.tree.len()
     }
 
     /// Panics if pos is out of bounds.
+    /// Panics on overflow in debug.
     /// O(㏒₂ len).
     fn add(&mut self, mut pos: usize, val: F) {
         assert!(pos < self.tree.len(), "pos out of bounds");
@@ -48,6 +70,23 @@ where
         } else {
             while pos < self.tree.len() {
                 self.tree[pos] += val;
+                // Add least significant bit.
+                // Equivalent to pos += pos & -pos with two's complement.
+                pos += 1 << pos.trailing_zeros();
+            }
+        }
+    }
+
+    /// Panics if pos is out of bounds.
+    /// Panics on underflow in debug.
+    /// O(㏒₂ len).
+    fn sub(&mut self, mut pos: usize, val: F) {
+        assert!(pos < self.tree.len(), "pos out of bounds");
+        if pos == 0 {
+            self.tree[0] -= val;
+        } else {
+            while pos < self.tree.len() {
+                self.tree[pos] -= val;
                 // Add least significant bit.
                 // Equivalent to pos += pos & -pos with two's complement.
                 pos += 1 << pos.trailing_zeros();
@@ -118,16 +157,17 @@ where
     }
 
     /// O(len ㏒₂ len).
-    fn scale_down(&mut self, factor: F) {
-        for mut pos in (1..self.tree.len()).rev() {
-            // Equivalent to: self.add(pos, - self.freq(pos) / div); if it accepted a signed value.
+    /// scale_freq is called O(len) times (once per position).
+    fn scale<C: Fn(F) -> F>(&mut self, scale_freq: C) {
+        for pos in (1..self.tree.len()).rev() {
             let freq = self.freq(pos);
-            let sub = freq - freq / factor;
-            while pos < self.tree.len() {
-                self.tree[pos] -= sub;
-                pos += 1 << pos.trailing_zeros();
+            let sfreq = scale_freq(freq);
+            if sfreq < freq {
+                self.sub(pos, freq - sfreq);
+            } else if sfreq > freq {
+                self.add(pos, sfreq - freq);
             }
         }
-        self.tree[0] /= factor;
+        self.tree[0] = scale_freq(self.tree[0]);
     }
 }

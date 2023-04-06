@@ -1,6 +1,6 @@
 use std::{
     iter::Sum,
-    ops::{AddAssign, DivAssign},
+    ops::{AddAssign, Mul, SubAssign},
 };
 
 /// Store the frequency of each position in a array.
@@ -9,7 +9,7 @@ use std::{
 ///
 /// It is slightly faster than [crate::BinaryIndexedTree] for small tables depending on the
 /// computer. See the [module][crate#benchmarks] documentation for more details.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FreqTable<F = usize> {
     freqs: Box<[F]>,
     total: F,
@@ -17,7 +17,7 @@ pub struct FreqTable<F = usize> {
 
 impl<F> super::CumulFreqTable<F> for FreqTable<F>
 where
-    F: std::convert::From<u8> + Copy + AddAssign + Sum + DivAssign + PartialOrd,
+    F: From<u8> + Copy + AddAssign + SubAssign + Sum + Mul<Output = F> + PartialOrd,
 {
     /// Panics if len < 1.
     fn new(len: usize) -> Self {
@@ -28,17 +28,41 @@ where
         }
     }
 
+    /// Panics if len < 1.
+    /// Panics if len overflows F.
+    fn with_freq(len: usize, init: F) -> Self
+    where
+        usize: TryInto<F>,
+        <usize as TryInto<F>>::Error: std::fmt::Debug,
+    {
+        assert!(len > 0, "table must be non-empty");
+        Self {
+            freqs: vec![init; len].into_boxed_slice(),
+            total: init * len.try_into().unwrap(),
+        }
+    }
+
     /// O(1).
     fn len(&self) -> usize {
         self.freqs.len()
     }
 
     /// Panics if pos is out of bounds.
+    /// Panics on overflow in debug.
     /// O(1).
     fn add(&mut self, pos: usize, val: F) {
         assert!(pos < self.freqs.len(), "pos out of bounds");
         self.freqs[pos] += val;
         self.total += val;
+    }
+
+    /// Panics if pos is out of bounds.
+    /// Panics on underflow in debug.
+    /// O(1).
+    fn sub(&mut self, pos: usize, val: F) {
+        assert!(pos < self.freqs.len(), "pos out of bounds");
+        self.freqs[pos] -= val;
+        self.total -= val;
     }
 
     /// Panics if pos is out of bounds.
@@ -72,10 +96,10 @@ where
     }
 
     /// O(len).
-    fn scale_down(&mut self, factor: F) {
+    fn scale<C: Fn(F) -> F>(&mut self, scale_freq: C) {
         let mut sum: F = 0.into();
         for freq in self.freqs.iter_mut() {
-            *freq /= factor;
+            *freq = scale_freq(*freq);
             sum += *freq;
         }
         self.total = sum;
